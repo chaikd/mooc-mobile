@@ -1,0 +1,67 @@
+<template>
+	<!-- #ifdef APP -->
+	<scroll-view style="flex:1">
+	<!-- #endif -->
+		<view class="input-wrapper">
+		  <input id="uni-input-default" class="uni-input" v-model="state.query.courseName" />
+		</view>
+		<waterflow
+			refresher-default-style="none"
+			:refresher-enabled="true"
+			:refresher-triggered="state.loading"
+			@scrolltolower="scrolltolower"
+			style="flex:1"
+		>
+			<flow-item v-for="i in 10" class="content-item" type=1>
+				<text class="text">item-{{i}}</text>
+			</flow-item>
+			<!-- 自定义下拉刷新元素 -->
+			<flow-item slot="refresher" class="refresh-box" type=2>
+				<text class="tip-text">{{text[state]}}</text>
+			</flow-item>
+		</waterflow>
+	<!-- #ifdef APP -->
+	</scroll-view>
+	<!-- #endif -->
+</template>
+
+<script setup lang="uts">
+	// import {onMounted} from 'vue'
+	const state = reactive({
+		query: {
+			courseName: ''
+		},
+		courseList: [],
+		page: 0,
+		pageSize: 10,
+		total: 0,
+		loading: false
+	})
+	const loadData = () => {
+		if(state.courseList.length === state.total) {
+			return
+		}
+		state.page += 1
+		uni.request({
+			url: 'http://localhost:3000/api/course/center',
+			method: 'POST',
+			data: {
+				page: state.page,
+				pageSize: state.pageSize
+			},
+			success: (res: any) => {
+				// console.log(res.data)
+			}
+		})
+	}
+	const scrolltolower = () => {
+		// loadData()
+	}
+	// onMounted(() => {
+	// 	loadData()
+	// })
+</script>
+
+<style>
+		
+</style>

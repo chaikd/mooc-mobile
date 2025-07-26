@@ -1,0 +1,52 @@
+import { UserType } from "./user";
+
+export interface CourseType {
+  _id?: string;
+  courseName: string; // 课程名称
+  instructorId: string; // 讲师id
+  instructorDesc?: string; // 讲师描述
+  courseDesc?: string; // 课程描述
+  courseCover?: string; // 课程封面
+  courseDuration?: number; // 课程时长（分钟）
+  price?: number; // 价格
+  sort?: number; // 排序
+  statusId: string; // 课程状态id
+  statusCode: string;
+  createTime: Date; // 创建时间
+  createUserId: string; // 创建用户id
+  instructor?: UserType; // 教师信息
+  totalCount?: number; // 总报名人数
+}
+
+export interface LiveType {
+  _id?: string;
+  title: string;
+  description: string;
+  instructorId: string;
+  createUserId: string;
+  status: "scheduled" | "live" | "ended";
+  startTime: Date;
+  endTime: Date;
+  liveStartTime: Date;
+  liveEndTime: Date;
+  createTime: Date;
+  liveDataId: string;
+  roomToken: string;
+  liveCover: string;
+  chatEnabled: boolean; // 是否开启聊天
+  maxViewerCount: number; // 最大在线人数
+  recordEnabled: boolean; // 是否录播
+  recordUrl: string; // 录播回放地址
+  instructor?: UserType; // 教师信息
+  totalCount?: number; // 总观看人数
+}
+
+export interface CourseCard {
+	id: string,
+	title: string,
+	cover:string,
+	description: string,
+	instructorName: string,
+	duration: string,
+	totalCount: number
+}

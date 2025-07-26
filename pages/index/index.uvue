@@ -1,0 +1,91 @@
+<template>
+	<!-- #ifdef APP -->
+	<scroll-view style="flex:1">
+	<!-- #endif -->
+		<swiper class="swiper" :indicator-dots="true" :autoplay="true" :interval="3000" :duration="1000" :circular="true">
+			<swiper-item v-for="item in infos" class="swiper-item" :key="item.msg">
+				<image :src="item.imgUrl" mode=""></image>
+				<text class="swiper-text">{{item.msg}}</text>
+			</swiper-item>
+		</swiper>
+		<view class="content">
+			<view class="card-header uni-row">
+				<text>直播推荐</text>
+				<navigator class="text-primary" url="/pages/course/center/index">查看更多</navigator>
+			</view>
+			<view class="">
+				<courseCard :list="state.live"></courseCard>
+			</view>
+		</view>
+		<view class="content">
+			<view class="card-header uni-row">
+				<text>课程推荐</text>
+				<navigator class="text-primary" url="/pages/course/center/index">查看更多</navigator>
+			</view>
+			<view class="">
+				<courseCard :list="state.course"></courseCard>
+			</view>
+		</view>
+	<!-- #ifdef APP -->
+	</scroll-view>
+	<!-- #endif -->
+</template>
+
+<script lang="uts" setup>
+	import { CourseCard, CourseType, LiveType } from '@/pages/types/course'
+	import courseCard from '@/pages/components/course-card/index.uvue'
+	import {ref} from 'vue'
+	const infos: Array<{
+		imgUrl: string
+		msg: string
+	}> = [
+	  {
+	    imgUrl: "https://picsum.photos/1920/1080?random=1",
+	    msg: "星空正从你的裂缝里涌进来。",
+	  },
+	  {
+	    imgUrl: "https://picsum.photos/1920/1080?random=4",
+	    msg: "别叩问！直接撞向它！",
+	  },
+	  {
+	    imgUrl: "https://picsum.photos/1920/1080?random=2",
+	    msg: "一朵花的美丽在于它曾经凋谢过。",
+	  },
+	  {
+	    imgUrl: "https://picsum.photos/1920/1080?random=3",
+	    msg: "前行不息，无须迟疑和退避，健行于你寂寥的小径。",
+	  },
+	]
+	const state = reactive<{
+			course: Array<CourseCard>,
+			live: Array<CourseCard>
+		}>({
+		course: [],
+		live: []
+	})
+	uni.request({
+		url: 'http://localhost:3001/api/course/home',
+		method: 'GET',
+		data: {},
+		success: (res: any) => {
+			state.course = res.data.data.courses.map((v: CourseType) => ({
+				...v,
+				title: v.courseName,
+				cover:v.courseCover,
+				description: v.courseDesc,
+				instructorName: v.instructor?.username,
+			}))
+			state.live = res.data.data.lives.map((v: LiveType) => ({
+				...v,
+				cover:v.liveCover,
+				instructorName: v.instructor?.username,
+			}))
+		},
+		fail: () => {},
+		complete: () => {}
+	});
+</script>
+
+<style lang="scss">
+	@import './index.scss';
+</style>
