@@ -1,46 +1,54 @@
 <template>
-	<view class="course-card uni-row" v-for="item in list">
-		<image :src="item.cover" :alt="item.title" :key="item._id"/>
-		<view class="flex-1 info">
-			<text class="title">{{item.title}}</text>
-			<text>讲师：{{item.instructorName}}</text>
-			<text>描述：{{item.description}}</text>
-			<text>已学习：{{item.totalCount || 0}}人</text>
+	<navigator class="mt-base" v-if="cardInfo" :url="url">
+		<view class="course-card uni-row">
+			<image :src="cardInfo.cover" :alt="cardInfo.title" :key="cardInfo._id"/>
+			<view class="flex-1 course-info">
+				<text class="title">{{cardInfo.title}}</text>
+				<text class="info">讲师：{{cardInfo.instructorName}}</text>
+				<text class="info">描述：{{cardInfo.description}}</text>
+				<text class="info">已学习：{{cardInfo.totalCount || 0}}人</text>
+			</view>
+			<view class="islive tag" v-if="cardInfo.status === 'live'">
+				<text>直播中</text>
+			</view>
 		</view>
-	</view>
+	</navigator>
 </template>
 
 <script setup lang="uts">
 	import { CourseCard } from '@/pages/types/course.uts'
 	const props = withDefaults(defineProps<{
-		list: Array<CourseCard | never>
+		// list: Array<CourseCard | never>
+		cardInfo: CourseCard,
+		isLive: boolean,
+		url: string
 	}>(), {
-		list: [] as any
+		// list: [] as any
+		cardInfo: null,
+		isLive: false,
+		url: ''
 	})
 </script>
 
 <style lang="scss">
 	.course-card {
+		position: relative;
 		height: 130px;
 		border: 1px solid #eee;
 		border-radius: 6px;
-		margin-top: 10px;
 		image {
 			width: 40%;		
 			min-width: 180px;
 			height: 100%;
 		}
-		.info {
+		.course-info {
 			justify-content: space-around;
 			margin-left: 10px;
 		}
-		.title {
-			font-size: $uni-font-size-lg;
-			font-weight: 600;
-		}
-		text {
-			font-size: $uni-font-size-sm;
-			text: $uni-text-color-grey;
-		}
+	}
+	.islive {
+		position: absolute;
+		top: $uni-spacing-col-base;
+		right: $uni-spacing-row-base;
 	}
 </style>

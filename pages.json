@@ -37,6 +37,20 @@
 			{
 				"navigationBarTitleText" : "课程详情"
 			}
+		},
+		{
+			"path" : "pages/live/center/index",
+			"style" : 
+			{
+				"navigationBarTitleText" : "直播列表"
+			}
+		},
+		{
+			"path" : "pages/live/detail/index",
+			"style" : 
+			{
+				"navigationBarTitleText" : "直播详情"
+			}
 		}
 	],
 	"globalStyle": {

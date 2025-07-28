@@ -1,0 +1,22 @@
+const host = 'http://localhost:3001'
+export function request<T>(option: RequestOptions<T>) {
+	const promise = new Promise((resolve, reject) => {
+		uni.request<T>({
+			...option,
+			url: host + option.url,
+			success: (res: RequestSuccess<T>) => {
+				if(option.success) {
+					option.success(res)
+				}
+				resolve(res.data)
+			},
+			fail: (error) => {
+				if(option.fail) {
+					option.fail(error)
+				}
+				reject(error)
+			}
+		})
+	})
+	return promise
+}

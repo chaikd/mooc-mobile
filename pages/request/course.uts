@@ -1,0 +1,102 @@
+import {request} from './request'
+import {CourseChapterType, CourseType} from '@/pages/types/course'
+
+export function getCourses(state: {
+	page: number,
+	pageSize: number,
+	query?: {
+		courseName?: string
+	}
+}) {
+	return request<{
+			courseList: Array<CourseType>,
+			total: number
+		}>({
+			url: '/api/course/center',
+			method: 'POST',
+			data: {
+				page: state.page,
+				pageSize: state.pageSize,
+				query: state.query
+			},
+		}).then((res) => {
+			const { data } = res as {
+				data: {
+				  courseList: CourseType[];
+				  total: number;
+				};
+			};
+			data.courseList = data.courseList.map(v => {
+				return {
+					...v,
+					title: v.courseName,
+					cover:v.courseCover,
+					description: v.courseDesc,
+					instructorName: v.instructor?.username,
+				}
+			})
+			return data
+		})
+}
+
+export function getCourseDetail(id: string) {
+	return request<{
+		data: CourseType,
+		success: boolean
+	}>({
+		url: `/api/course/${id}`,
+		method: 'GET'
+	})
+}
+
+export function getChaptersList(id: string) {
+	return request<{
+		success: boolean,
+		data: Array<CourseChapterType>
+	}>({
+		url: `/api/course/${id}/chapter`,
+		method: 'GET'
+	}).then((res) => {
+		const {
+			success, data
+		} = res as {
+			success: boolean,
+			data: Array<CourseChapterType>
+		}
+		let obj = {
+			success,
+			data: [] as Array<CourseChapterType>
+		}
+		if(success && data) {
+			obj.data = parseChapter(data)
+		}
+		return obj
+	})
+}
+
+function parseChapter(data): Array<CourseChapterType> {
+  const roots = data.filter((v) => !v.parentChapterId);
+  const keys: Array<string> = [];
+  const findChildren = (
+    dataList: Array<CourseChapterType>,
+    roots: Array<CourseChapterType>
+  ) => {
+    return roots.map((v) => {
+      if (v._id) {
+        keys.push(v._id);
+      }
+      let children = dataList
+        .filter((item) => item.parentChapterId === v._id)
+        .sort((a, b) => (a.sort as number) - (b.sort as number));
+      children = findChildren(dataList, children);
+      return {
+        ...v,
+        title: v.chapterName,
+        key: v._id,
+        children: children?.length > 0 ? children : undefined,
+      };
+    });
+  };
+  const trees = findChildren(data, roots);
+  return trees;
+}

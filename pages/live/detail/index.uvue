@@ -1,0 +1,148 @@
+<template>
+	<scroll-view class="flex-1">
+		<view>
+			<video style="width:100%;" src="" controls></video>
+		</view>
+		<view class="flex uni-row p-base">
+			<view class="cover">
+				<image src="/static/logo.png" mode=""></image>
+			</view>
+			<view class="ml-base">
+				<text class="title">{{state.detail?.title}}</text>
+				<view class="flex uni-row info mt-base">
+					<text>开始于：{{state.detail?.liveStartTime}}</text>
+				</view>
+			</view>
+		</view>
+		<view class="chat-room flex flex-1">
+			<view class="chat-title p-base">
+				<text class="title">聊天室</text>
+			</view>
+			<scroll-view class="flex-1" id="message-box" :scroll-into-view="state.scrollIntoView">
+				<view class="p-base">
+					<view class="" v-for="(item, key) of state.messageList" :key="key" :id="`message-${key}`">
+						<view class="msg-box mt-base">
+							<view class="msg-head flex uni-row">
+								<text class="mr-sm text-primary">{{item.username}}</text>
+								<text>{{item.createTime}}</text>
+							</view>
+							<view class="mt-base">
+								<text>{{item.message}}</text>
+							</view>
+						</view>
+					</view>
+				</view>
+			</scroll-view>
+			<view class="input-box flex uni-row">
+				<input class="input-wrapper flex-1 mr-sm" type="text" v-model="state.messageValue" placeholder="输入要发送的内容"/>
+				<button type="primary" @click="sendMsg">发送</button>
+			</view>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	import {reactive, onBeforeUnmount} from 'vue'
+	import { getLiveDetail } from '@/pages/request/live'
+	import { LiveType, MessageType } from '@/pages/types/live'
+	import * as io from '@/js_sdk/hyoga-uni-socket_io/uni-socket.io';
+	const state = reactive<
+		{
+			id: string,
+			detail: LiveType | null,
+			chatSocket: any,
+			messageList: Array<MessageType>,
+			messageValue: string,
+			scrollIntoView: string
+		}
+	>({
+		id: '',
+		detail: null,
+		chatSocket: null,
+		messageList: [],
+		messageValue: '',
+		scrollIntoView: ''
+	})
+	onLoad((option) => {
+		state.id = option.id as string
+	})
+	onMounted(async () => {
+		await getLive()
+		connectSocket()
+	})
+	onBeforeUnmount(() => {
+		if(state.chatSocket) {
+			state.chatSocket.disconnect()
+		}
+	})
+	const getLive = async () => {
+		await getLiveDetail(state.id).then(res => {
+			const {
+				data,
+				success
+			} = res
+			if(success) {
+				state.detail = data
+			}
+		})
+	}
+	const connectSocket = () => {
+		state.chatSocket = io(`http://localhost:3000/ws/chat?roomId=${state.id}`,{
+			query: {
+				hoomId: state.id
+			},
+			transports: ['websocket', 'polling']
+		})
+		state.chatSocket.on('connect', (res) => {
+			console.log('connected')
+			state.chatSocket.on('message',(msg) => {
+				state.messageList.push(JSON.parse(msg))
+				nextTick(() => {
+					state.scrollIntoView = `message-${state.messageList.length - 1}`
+				})
+			})
+			state.chatSocket.on('messageList', (messageList) => {
+				messageList.forEach(msg => {
+					state.messageList.push(JSON.parse(msg))
+				})
+				nextTick(() => {
+					state.scrollIntoView = `message-${messageList.length - 1}`
+				})
+			})
+			state.chatSocket.emit('messageAll')
+		})
+		
+	}
+	const sendMsg = () => {
+		if(!state.messageValue) {
+			uni.showToast({
+				title: '请输入要发送的消息',
+			})
+		}
+		if(state.chatSocket) {
+			state.chatSocket.emit('messageSend', JSON.stringify({
+			  userId: '123456',
+			  username: '游客',
+			  message: state.messageValue,
+			  createTime: new Date()
+			}))
+			state.messageValue = ''
+		}
+	}
+</script>
+
+<style lang="scss">
+	.chat-title {
+		border-bottom: 1px solid $uni-border-color;
+	}
+	.input-box {
+		padding: $uni-spacing-col-base;
+		border-top: 1px solid $uni-border-color;
+		.input-wrapper {
+			height: 100%;
+		}
+		button {
+			font-size: $uni-font-size-base;
+		}
+	}
+</style>

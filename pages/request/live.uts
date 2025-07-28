@@ -1,0 +1,45 @@
+import { LiveType } from "@/pages/types/live";
+import { request } from "./request";
+
+export function getLiveList(state: {
+	page: number,
+	pageSize: number,
+	query?: {
+		title?: string
+	}
+}) {
+	return request<{
+			liveList: Array<LiveType>,
+			total: number
+		}>({
+		url: '/api/live/center',
+		method: 'POST',
+		data: {
+			page: state.page,
+			pageSize: state.pageSize,
+			query: state.query
+		},
+	}).then((res) => {
+		const { data } = res as {
+			data: {
+			  liveList: LiveType[];
+			  total: number;
+			};
+		};
+		data.liveList = data.liveList.map(v => {
+			return {
+				...v,
+				cover:v.liveCover,
+				instructorName: v.instructor?.username,
+			}
+		})
+		return data
+	})
+}
+
+export function getLiveDetail(id: string) {
+	return request({
+		url: `/api/live/${id}`,
+		method:'GET',
+	})
+}

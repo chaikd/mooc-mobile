@@ -1,3 +1,4 @@
+import { LiveType } from "./live";
 import { UserType } from "./user";
 
 export interface CourseType {
@@ -18,30 +19,7 @@ export interface CourseType {
   totalCount?: number; // 总报名人数
 }
 
-export interface LiveType {
-  _id?: string;
-  title: string;
-  description: string;
-  instructorId: string;
-  createUserId: string;
-  status: "scheduled" | "live" | "ended";
-  startTime: Date;
-  endTime: Date;
-  liveStartTime: Date;
-  liveEndTime: Date;
-  createTime: Date;
-  liveDataId: string;
-  roomToken: string;
-  liveCover: string;
-  chatEnabled: boolean; // 是否开启聊天
-  maxViewerCount: number; // 最大在线人数
-  recordEnabled: boolean; // 是否录播
-  recordUrl: string; // 录播回放地址
-  instructor?: UserType; // 教师信息
-  totalCount?: number; // 总观看人数
-}
-
-export interface CourseCard {
+export interface CourseCard extends CourseType, LiveType {
 	id: string,
 	title: string,
 	cover:string,
@@ -49,4 +27,17 @@ export interface CourseCard {
 	instructorName: string,
 	duration: string,
 	totalCount: number
+}
+
+export interface CourseChapterType {
+  _id?: string;
+  chapterName: string; // 章节名称
+  chapterDesc?: string; // 章节描述
+  parentChapterId?: string; // 父级章节Id
+  courseId: string; // 课程id
+  materialIds: string[]; // 关联的资料id数组
+  sort?: number; // 排序
+  createTime: Date; // 创建时间
+  createUserId: string; // 创建用户id
+  children?: Array<CourseChapterType>
 }

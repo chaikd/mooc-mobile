@@ -8,22 +8,32 @@
 				<text class="swiper-text">{{item.msg}}</text>
 			</swiper-item>
 		</swiper>
-		<view class="content">
+		<view class="content p-base">
 			<view class="card-header uni-row">
 				<text>直播推荐</text>
-				<navigator class="text-primary" url="/pages/course/center/index">查看更多</navigator>
+				<navigator class="text-primary" url="/pages/live/center/index">查看更多</navigator>
 			</view>
-			<view class="">
-				<courseCard :list="state.live"></courseCard>
+			<view>
+				<courseCard
+					v-for="item in state.live"
+					:cardInfo="item"
+					:key="item._id"
+					:url="`/pages/live/detail/index?id=${item._id}`"
+				></courseCard>
 			</view>
 		</view>
-		<view class="content">
+		<view class="content p-base">
 			<view class="card-header uni-row">
 				<text>课程推荐</text>
 				<navigator class="text-primary" url="/pages/course/center/index">查看更多</navigator>
 			</view>
-			<view class="">
-				<courseCard :list="state.course"></courseCard>
+			<view>
+				<courseCard
+					v-for="item in state.course"
+					:cardInfo="item"
+					:key="item._id"
+					:url="`/pages/course/detail/index?id=${item._id}`"
+				></courseCard>
 			</view>
 		</view>
 	<!-- #ifdef APP -->
@@ -32,7 +42,8 @@
 </template>
 
 <script lang="uts" setup>
-	import { CourseCard, CourseType, LiveType } from '@/pages/types/course'
+	import { CourseCard, CourseType } from '@/pages/types/course'
+	import { LiveType } from '@/pages/types/live'
 	import courseCard from '@/pages/components/course-card/index.uvue'
 	import {ref} from 'vue'
 	const infos: Array<{

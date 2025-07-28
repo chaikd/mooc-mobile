@@ -1,0 +1,31 @@
+import { UserType } from "./user";
+
+export interface MessageType {
+  username: string
+  userId: string
+  createTime: string
+  message: string
+}
+
+export interface LiveType {
+  _id?: string;
+  title: string;
+  description: string;
+  instructorId: string;
+  createUserId: string;
+  status: "scheduled" | "live" | "ended";
+  startTime: Date;
+  endTime: Date;
+  liveStartTime: Date;
+  liveEndTime: Date;
+  createTime: Date;
+  liveDataId: string;
+  roomToken: string;
+  liveCover: string;
+  chatEnabled: boolean; // 是否开启聊天
+  maxViewerCount: number; // 最大在线人数
+  recordEnabled: boolean; // 是否录播
+  recordUrl: string; // 录播回放地址
+  instructor?: UserType; // 教师信息
+  totalCount?: number; // 总观看人数
+}

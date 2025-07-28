@@ -1,8 +1,8 @@
 <template>
 	<view class="p-base pb-0">
-		<view class="flex uni-row input-wrapper p-base">
+		<view class="uni-row input-wrapper p-base">
 			<view class="flex-1">
-			  <input class="uni-input" placeholder="输入课程名称" v-model="state.query.courseName" type="text"/>
+			  <input class="uni-input" placeholder="输入直播名称" v-model="state.query.title" type="text"/>
 			</view>
 			<icon type="search" class=""></icon>
 		</view>
@@ -13,10 +13,10 @@
 	>
 		<view class="p-base pt-0">
 			<courseCard
-				v-for="item in state.courseList"
-				:cardInfo="item"
+				v-for="item in state.liveList"
 				:key="item._id"
-				:url="`/pages/course/detail/index?id=${item._id}`"
+				:cardInfo="item"
+				:url="`/pages/live/detail/index?id=${item._id}`"
 			></courseCard>
 		</view>
 	</scroll-view>
@@ -28,34 +28,35 @@
 	import {onMounted} from 'vue'
 	import courseCard from '@/pages/components/course-card/index.uvue'
 	import {getCourses} from '@/pages/request/course'
-	import {CourseType} from '@/pages/types/course'
+	import {LiveType} from '@/pages/types/live'
+import { getLiveList } from '@/pages/request/live'
 	const state = reactive({
 		query: {
-			courseName: ''
+			title: ''
 		} as UTSJSONObject & {
-			courseName: ''
+			title: ''
 		},
-		courseList: [] as Array<CourseType>,
+		liveList: [] as Array<LiveType>,
 		page: 0,
 		pageSize: 10,
 		total: 0,
 		loading: false
 	})
 	const loadData = () => {
-		if(state.page > state.courseList.length % state.pageSize) {
+		if(state.page > state.liveList.length % state.pageSize) {
 			return
 		}
 		state.loading = true
 		state.page += 1
-		getCourses({
+		getLiveList({
 			page: state.page,
 			pageSize: state.pageSize,
 			query: state.query
 		}).then((res: {
-			courseList: Array<CourseType>,
+			liveList: Array<LiveType>,
 			total: number
 		}) => {
-			state.courseList.push(...res.courseList)
+			state.liveList.push(...res.liveList)
 			state.total = res.total
 		}).finally(() => {
 			state.loading = false

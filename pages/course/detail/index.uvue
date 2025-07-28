@@ -1,17 +1,101 @@
 <template>
-	<!-- #ifdef APP -->
 	<scroll-view style="flex:1">
-	<!-- #endif -->
-		
-	<!-- #ifdef APP -->
+		<template v-if="state.courseDetail">
+			<view class="cover">
+				<image class="cover-image" :src="state.courseDetail.courseCover" mode=""></image>
+			</view>
+			<view class="course-info p-base">
+				<text class="title">{{state.courseDetail.courseName}}</text>
+				<text class="info mt-base">{{state.courseDetail.courseDesc}}</text>
+				<view class="uni-row mt-base">
+					<text class="info iconfont icon-xuexiao_jiaoshi mr-sm"></text>
+					<text class="info mr-base">讲师：{{state.courseDetail.instructor.username}}</text>
+					<text class="info iconfont icon-xueyuan mr-sm"></text>
+					<text class="info">{{state.courseDetail.totalCount || 0}}人学习</text>
+				</view>
+				<view class="mt-base">
+					<text class="title">课程大纲</text>
+					<view class="chapter-tree">
+						<template v-for="item in state.chapterList" :key="item._id">
+							<view class="chapter-item card mt-base">
+								<text class="title">{{item.chapterName}}</text>
+								<text class="info mt-base">{{item.chapterDesc}}</text>
+							</view>
+							<template v-if="item.children && item.children.length > 0">
+								<template v-for="child in item.children" :key="child._id">
+									<view class="chapter-item card ml-base mt-base">
+										<text class="title">{{child.chapterName}}</text>
+										<text class="info mt-base">{{child.chapterDesc}}</text>
+									</view>
+								</template>
+							</template>
+						</template>
+					</view>
+				</view>
+			</view>
+		</template>
 	</scroll-view>
+	<!-- #ifdef APP -->
 	<!-- #endif -->
 </template>
 
-<script setup>
-		
+<script setup lang="uts">
+	import { getChaptersList, getCourseDetail } from '@/pages/request/course'
+	import {reactive, onMounted} from 'vue'
+	import { CourseChapterType, CourseType } from '@/pages/types/course'
+	const state = reactive<{
+		courseId: string,
+		courseDetail: null | CourseType,
+		chapterList: Array<CourseChapterType>
+	}>({
+		courseId: '',
+		courseDetail: null,
+		chapterList: []
+	})
+	onLoad((option) => {
+		state.courseId = option.id as string
+	})
+	onMounted(() => {
+		getDetail()
+		getChapters()
+	})
+	const getDetail = () => {
+		getCourseDetail(state.courseId).then((res) => {
+			const {
+				success, data
+			} = res as {
+				success: boolean,
+				data: CourseType
+			}
+			if(success) {
+				state.courseDetail = data
+			}
+		})
+	}
+	const getChapters = () => {
+		getChaptersList(state.courseId).then(res => {
+			const {
+				success, data
+			} = res as {
+				success: boolean,
+				data: Array<CourseChapterType>
+			}
+			if(success) {
+				console.log(data)
+				state.chapterList = data
+			}			
+		})
+	}
 </script>
 
-<style>
-		
+<style lang="scss">
+	.cover {
+		height:200px;
+		.cover-image {
+			width: 100%;
+		}
+	}
+	.course-title {
+		font-weight: 600;
+	}
 </style>
