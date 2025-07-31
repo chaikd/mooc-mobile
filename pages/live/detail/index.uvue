@@ -1,7 +1,16 @@
 <template>
+	<!-- #ifdef MP-WEIXIN -->
 	<scroll-view class="flex-1">
 		<view>
-			<video style="width:100%;" src="" controls></video>
+			<video
+				style="width: 100%;"
+				:src="state.videoUrl"
+				autoplay
+				controls
+				:enable-danmu="false"
+				:enable-progress-gesture="true"
+				:show-center-play-btn="true"
+			></video>
 		</view>
 		<view class="flex uni-row p-base">
 			<view class="cover">
@@ -33,19 +42,20 @@
 					</view>
 				</view>
 			</scroll-view>
-			<view class="input-box flex uni-row">
+			<view class="input-box flex uni-row" v-if="state.detail?.status === 'live'">
 				<input class="input-wrapper flex-1 mr-sm" type="text" v-model="state.messageValue" placeholder="输入要发送的内容"/>
 				<button type="primary" @click="sendMsg">发送</button>
 			</view>
 		</view>
 	</scroll-view>
+	<!-- #endif -->
+	<!-- #ifdef WEB -->
+		<web-view :src="`http://localhost:3001/live/${state.id}`"></web-view>
+	<!-- #endif -->
 </template>
 
 <script setup lang="uts">
-	import {reactive, onBeforeUnmount} from 'vue'
-	import { getLiveDetail } from '@/pages/request/live'
 	import { LiveType, MessageType } from '@/pages/types/live'
-	import * as io from '@/js_sdk/hyoga-uni-socket_io/uni-socket.io';
 	const state = reactive<
 		{
 			id: string,
@@ -53,7 +63,9 @@
 			chatSocket: any,
 			messageList: Array<MessageType>,
 			messageValue: string,
-			scrollIntoView: string
+			scrollIntoView: string,
+			liveSocket: any,
+			videoUrl: string
 		}
 	>({
 		id: '',
@@ -61,18 +73,30 @@
 		chatSocket: null,
 		messageList: [],
 		messageValue: '',
-		scrollIntoView: ''
+		scrollIntoView: '',
+		liveSocket: null,
+		videoUrl: ''
 	})
 	onLoad((option) => {
 		state.id = option.id as string
 	})
+	// #ifdef MP-WEIXIN
+	import {reactive, onBeforeUnmount} from 'vue'
+	import { getLiveDetail } from '@/pages/request/live'
+	import * as io from '@/js_sdk/hyoga-uni-socket_io/uni-socket.io';
+	import { useHost } from '@/states/host';
+	const {liveHost} = useHost()
 	onMounted(async () => {
 		await getLive()
-		connectSocket()
+		connectChatSocket()
+		connectLiveSocket()
 	})
 	onBeforeUnmount(() => {
 		if(state.chatSocket) {
 			state.chatSocket.disconnect()
+		}
+		if(state.liveSocket) {
+			state.liveSocket.disconnect()
 		}
 	})
 	const getLive = async () => {
@@ -80,30 +104,36 @@
 			const {
 				data,
 				success
-			} = res
+			} = res as {
+				data: LiveType,
+				success: boolean
+			}
 			if(success) {
 				state.detail = data
 			}
 		})
 	}
-	const connectSocket = () => {
-		state.chatSocket = io(`http://localhost:3000/ws/chat?roomId=${state.id}`,{
+	const connectChatSocket = () => {
+		if(state.detail?.status !== 'live') {
+			return
+		}
+		state.chatSocket = io(`${liveHost}/ws/chat?roomId=${state.id}`,{
 			query: {
 				hoomId: state.id
 			},
 			transports: ['websocket', 'polling']
 		})
-		state.chatSocket.on('connect', (res) => {
+		state.chatSocket.on('connect', () => {
 			console.log('connected')
-			state.chatSocket.on('message',(msg) => {
-				state.messageList.push(JSON.parse(msg))
+			state.chatSocket.on('message',(msg: string) => {
+				state.messageList.push(JSON.parse(msg) as MessageType)
 				nextTick(() => {
 					state.scrollIntoView = `message-${state.messageList.length - 1}`
 				})
 			})
-			state.chatSocket.on('messageList', (messageList) => {
+			state.chatSocket.on('messageList', (messageList: string[]) => {
 				messageList.forEach(msg => {
-					state.messageList.push(JSON.parse(msg))
+					state.messageList.push(JSON.parse(msg) as MessageType)
 				})
 				nextTick(() => {
 					state.scrollIntoView = `message-${messageList.length - 1}`
@@ -129,6 +159,30 @@
 			state.messageValue = ''
 		}
 	}
+	const connectLiveSocket = () => {
+		if(state.detail?.status !== 'live') {
+			return
+		}
+		state.liveSocket = io(`${liveHost}/ws/live?roomId=${state.id}`,{
+			query: {
+				hoomId: state.id
+			},
+			transports: ['websocket', 'polling']
+		})
+		state.liveSocket.on('connect', res => {
+			state.liveSocket.on('produceReady', (data) => {
+				console.log('produceReady')
+				getHlsStream()
+			})
+			getHlsStream()
+		})
+	}
+	const getHlsStream = () => {
+		state.liveSocket.emit('hlsStream', {}, (data) => {
+			state.videoUrl = `${liveHost}${data.url}`
+		})
+	}
+	// #endif
 </script>
 
 <style lang="scss">

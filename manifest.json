@@ -60,5 +60,13 @@
 			"icons": {},
 			"splashScreens": {}
 		}
+	},
+	"web": {
+		"router": {
+			"mode": ""
+		},
+		"devServer": {
+			"port": "3004"
+		}
 	}
 }

@@ -73,7 +73,7 @@
 		})
 	}
 	const getChapters = () => {
-		getChaptersList(state.courseId).then(res => {
+		getChaptersList(state.courseId).then((res: any) => {
 			const {
 				success, data
 			} = res as {
@@ -81,7 +81,6 @@
 				data: Array<CourseChapterType>
 			}
 			if(success) {
-				console.log(data)
 				state.chapterList = data
 			}			
 		})
