@@ -1,4 +1,6 @@
 <script lang="uts">
+import { getToken, getLocalUserInfo, setUserInfo } from './states'
+
   // #ifdef APP-ANDROID || APP-HARMONY
 	let firstBackTime = 0
   // #endif
@@ -6,8 +8,20 @@
 		onLaunch: function () {
 			console.log('App Launch')
 		},
-		onShow: function () {
+		onShow: async function () {
 			console.log('App Show')
+			const token = getToken()
+			const userInfo = getLocalUserInfo()
+			if(token && !userInfo) {
+				try{
+					await setUserInfo()
+				} catch(err) {
+					console.log(err)
+				}
+			}
+		},
+		onPageShow: async function() {
+			console.log('onpage show')
 		},
 		onHide: function () {
 			console.log('App Hide')
@@ -52,6 +66,9 @@
 	.flex-1 {
 		flex: 1;
 	}
+	.justify-between {
+		justify-content: space-between;
+	}
 	.text-primary {
 		color: $uni-color-primary;
 	}
@@ -76,9 +93,16 @@
 	.ml-base {
 		margin-left: $uni-spacing-row-base;
 	}
+	.mx-auto {
+		margin: 0 auto;
+	}
 	
 	.w-full {
 		width: 100%;
+	}
+	.screen-full {
+		width: 100vw;
+		height: 100vh;
 	}
 	
 	/* 基础样式 */
@@ -121,5 +145,9 @@
 			width: 100%;
 			height: 100%;
 		}
+	}
+	.box {
+		border-radius: $uni-border-radius-lg;
+		box-shadow: 0px 4px 8px $uni-bg-color-hover;
 	}
 </style>

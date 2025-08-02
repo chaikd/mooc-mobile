@@ -1,0 +1,62 @@
+import {reactive} from "vue"
+import { UserType } from "@/pages/types/user"
+import { getUserInfo } from "../pages/request/auth"
+
+const state = reactive<State>({
+	userInfo: null,
+	token: getToken() || ''
+})
+
+export function getToken() {
+	return uni.getStorageSync('Authorization') || ''
+}
+
+export function getLocalUserInfo() {
+	const info = uni.getStorageSync('UserInfo')
+	return info ? JSON.parse(info) : null
+}
+	
+export async function setUserInfo(userInfo?: UserType | null) {
+	if(!userInfo && state.token) {
+		const {
+			success,
+			data
+		} = await getUserInfo() as {
+			success: boolean,
+			data: UserType
+		}
+		if(success) {
+			userInfo = data
+		}
+	} else {
+		userInfo = null
+	}
+	uni.setStorageSync('UserInfo', JSON.stringify(userInfo))
+	state.userInfo = userInfo as UserType
+}
+
+export function setToken(token: string) {
+	uni.setStorageSync('Authorization', token)
+	state.token = token
+}
+
+export const useAuth = (): AuthRefs => {
+	return toRefs(state) as any
+}
+
+export const clearAuth = () => {
+	setToken('')
+	setUserInfo(null)
+	uni.removeStorageSync('Authorization')
+	uni.removeStorageSync('UserInfo')
+}
+
+interface State {
+	userInfo: null | UserType
+	token: string
+}
+
+interface AuthRefs {
+	userInfo: Ref<UserType>
+	token: Ref<string>
+}

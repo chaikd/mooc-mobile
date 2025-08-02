@@ -1,0 +1,104 @@
+<template>
+	<view class="login-page p-base">
+		<view class="bg-cover"></view>
+		<view class="form-box box">
+			<text class="title mx-auto">登录</text>
+			<uni-forms class="mt-base" ref="form" :modelValue="state.formData" :rules="state.rules">
+				<uni-forms-item name="username">
+					<uni-easyinput v-model="state.formData.username" placeholder="用户名" :style="state.inputStyle" :placeholderStyle="state.placeholderStyle"/>
+				</uni-forms-item>
+				<uni-forms-item name="password">
+					<uni-easyinput type="password" v-model="state.formData.password" placeholder="密码" :style="state.inputStyle" :placeholderStyle="state.placeholderStyle"/>
+				</uni-forms-item>
+			</uni-forms>
+			<view class="flex uni-row justify-between">
+				<text class="text-primary">注册</text>
+				<text class="text-primary">忘记密码</text>
+			</view>
+			<view class="mt-base">
+				<button type="primary" @click="toLogin">登录</button>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script lang="uts" setup>
+	import { setToken, setUserInfo } from '@/states/auth'
+import {getUserInfo, login} from '@/pages/request/auth'
+import { UserType } from '../types/user'
+	const form = ref<any>(null)
+	const state = reactive<{
+		formData: {
+			username: string,
+			password: string
+		},
+		rules: object,
+		inputStyle: object,
+		placeholderStyle: string
+	}>({
+		formData: {
+			username: '',
+			password: ''
+		},
+		rules: {
+			username: {
+				rules: [
+					{required: true, message: '请输入用户名'}
+				]
+			},
+			password: {
+				rules: [
+					{required: true, message: '请输入密码'}
+				]
+			}
+		},
+		inputStyle: {
+			fontSize: '16px'
+		},
+		placeholderStyle: 'fontSize: 16px;'
+	})
+	const toLogin = async () => {
+		form.value.validate().then(async formData => {
+			try{
+				const res = await login(formData) as {
+					message: string
+					success: boolean
+					token: string
+					userId: string
+				}
+				setToken(res.token)
+				try{
+					await setUserInfo()
+				} catch(err) {
+					console.log(err)
+				}
+				uni.navigateBack()
+			}catch(err) {
+				uni.showToast({
+					title: '登录失败',
+				})
+				console.log(err)
+			}
+		})
+	}
+</script>
+
+<style lang="scss">
+	.login-page {
+		position: relative;
+		.bg-cover {
+			position: absolute;
+			height: 40%;
+			width: 100%;
+			top: 0;
+			left: 0;
+			background: url('/static/bg.png') no-repeat;
+			box-shadow: inset 0px -20px 30px white;
+		}
+	}
+	.form-box {
+		padding: 20px;
+		margin-top: 100px;
+		background-color: white;
+	}
+</style>

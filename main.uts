@@ -1,4 +1,5 @@
-import App from './App.uvue'
+import App from './App'
+import './states/index'
 
 import { createSSRApp } from 'vue'
 export function createApp() {

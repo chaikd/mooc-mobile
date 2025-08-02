@@ -1,22 +1,57 @@
-const host = 'http://localhost:3001'
+import { useHost } from "@/states/host"
+import {getToken} from "@/states/auth"
+
+const {apiHost} = useHost()
+
 export function request<T>(option: RequestOptions<T>) {
+	let token: null | string
+	try{
+		token = getToken()
+	} catch(err) {
+		token = uni.getStorageSync('Authorization') || ''
+	}
 	const promise = new Promise((resolve, reject) => {
 		uni.request<T>({
 			...option,
-			url: host + option.url,
+			url: apiHost + option.url,
+			header: {
+				...option.header,
+				Authorization: token
+			},
 			success: (res: RequestSuccess<T>) => {
-				if(option.success) {
-					option.success(res)
+				if (res.statusCode === 200) {
+					if(option.success) {
+						option.success(res)
+					}
+					resolve(res.data)
 				}
-				resolve(res.data)
+				if(res.statusCode === 401 || res.statusCode === 403) {
+					let data = res.data as any
+					const title = data.message || (data.data as any).message
+					if(title) {
+						uni.showToast({
+							title
+						})
+					}
+					const currentStack = getCurrentPages()
+					const currentRoute = currentStack[currentStack.length - 1]
+					const loginUrl = 'pages/login/index'
+					if(currentRoute.route !== loginUrl) {
+						uni.navigateTo({
+							url: loginUrl
+						})
+					}
+				}
 			},
 			fail: (error) => {
+				console.log('error',error)
 				if(option.fail) {
 					option.fail(error)
 				}
 				reject(error)
-			}
+			},
 		})
+		
 	})
 	return promise
 }

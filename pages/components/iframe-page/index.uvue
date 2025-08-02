@@ -1,0 +1,40 @@
+<template>
+	<!-- #ifdef WEB -->
+		<view class="iframe-container">
+			<iframe ref="liveView" :src="href"></iframe>
+		</view>
+	<!-- #endif -->
+	<!-- #ifndef WEB -->
+		<view class="mt-base text-primary">仅支持web和h5页面</view>
+	<!-- #endif -->
+</template>
+
+<script lang="uts" setup>
+	// #ifdef WEB
+		const props = defineProps({
+			href: {
+				type: String,
+				default: ''
+			},
+		})
+		const emits = defineEmits(['iframeReady'])
+		const liveView = ref(null)
+		onMounted(() => {
+			let viewIframe = liveView.value as unknown as HTMLIFrameElement
+			emits('iframeReady', viewIframe.contentWindow)
+		})
+	// #endif
+</script>
+
+<style lang="scss">
+	.iframe-container{
+		width: 100vw;
+		height: 100%;
+		iframe {
+			height: 100%;
+			width: 100%;
+			overflow-y: auto;
+			border:none;
+		}
+	}
+</style>

@@ -51,6 +51,13 @@
 			{
 				"navigationBarTitleText" : "直播详情"
 			}
+		},
+		{
+			"path" : "pages/login/index",
+			"style" : 
+			{
+				"navigationBarTitleText" : ""
+			}
 		}
 	],
 	"globalStyle": {

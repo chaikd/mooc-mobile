@@ -50,12 +50,14 @@
 	</scroll-view>
 	<!-- #endif -->
 	<!-- #ifdef WEB -->
-		<web-view :src="`http://localhost:3001/live/${state.id}`"></web-view>
+	<iframePage :href="`http://localhost:3001/m-live/${state.id}`" @iframeReady="onIframeReady"></iframePage>
 	<!-- #endif -->
 </template>
 
 <script setup lang="uts">
 	import { LiveType, MessageType } from '@/pages/types/live'
+	import iframePage from '@/pages/components/iframe-page/index'
+	import { getLocalUserInfo } from '@/states/auth'
 	const state = reactive<
 		{
 			id: string,
@@ -77,9 +79,29 @@
 		liveSocket: null,
 		videoUrl: ''
 	})
+	const userInfo = getLocalUserInfo()
 	onLoad((option) => {
 		state.id = option.id as string
 	})
+	// #ifdef WEB
+	let onMessage = (win: Window) => {
+		return ({data: {type}}) => {
+			// if(type === 'getToken') {
+			// 	win?.postMessage({ type: 'token', token: token.value}, '*');
+			// }
+			if(type === 'getInfo') {
+				win?.postMessage({ type: 'info', userInfo: userInfo}, '*');
+			}
+		}
+	}
+	const onIframeReady = (win: Window) => {
+		onMessage = onMessage(win) as any
+		window.addEventListener('message', onMessage)
+	}
+	onUnmounted(() => {
+		window.removeEventListener('message', onMessage)
+	})
+	// #endif
 	// #ifdef MP-WEIXIN
 	import {reactive, onBeforeUnmount} from 'vue'
 	import { getLiveDetail } from '@/pages/request/live'
@@ -87,9 +109,11 @@
 	import { useHost } from '@/states/host';
 	const {liveHost} = useHost()
 	onMounted(async () => {
+		// #ifdef MP-WEIXIN
 		await getLive()
 		connectChatSocket()
 		connectLiveSocket()
+		// #endif
 	})
 	onBeforeUnmount(() => {
 		if(state.chatSocket) {
@@ -171,7 +195,6 @@
 		})
 		state.liveSocket.on('connect', res => {
 			state.liveSocket.on('produceReady', (data) => {
-				console.log('produceReady')
 				getHlsStream()
 			})
 			getHlsStream()

@@ -1,23 +1,42 @@
 <template>
-	<!-- #ifdef APP -->
 	<scroll-view style="flex:1">
-	<!-- #endif -->
-		main
-	<!-- #ifdef APP -->
+		<template v-if="!state.token">
+			<view class="mt-base">
+				<navigator url="/pages/login/index">
+					<button type="primary" >去登陆</button>
+				</navigator>
+			</view>
+		</template>
+		<template v-else>
+			<view class="mt-base">
+				<button type="primary" @click="toLogout">退出登陆</button>
+			</view>
+		</template>
 	</scroll-view>
-	<!-- #endif -->
 </template>
 
-<script>
-	export default {
-		data() {
-			return {
-				
+<script setup lang="uts">
+	import {getToken, clearAuth} from '@/states/auth'
+	import {logout} from '@/pages/request/auth'
+	const state = reactive({
+		token: ''
+	})
+	onPageShow(() => {
+		state.token = getToken()
+	})
+	const toLogout = () => {
+		logout().then((res) => {
+			const {
+				success
+			} = res as {success: boolean}
+			if(success) {
+				uni.showToast({
+					title: '退出登录'
+				})
+				clearAuth()
+				state.token = getToken()
 			}
-		},
-		methods: {
-			
-		}
+		})
 	}
 </script>
 
