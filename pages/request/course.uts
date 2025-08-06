@@ -1,6 +1,12 @@
 import {request} from './request'
 import {CourseChapterType, CourseType} from '@/pages/types/course'
 
+export function getHomeCourses() {
+	return request({
+		url: '/api/course/home',
+		method: 'GET',
+	})
+}
 export function getCourses(state: {
 	page: number,
 	pageSize: number,

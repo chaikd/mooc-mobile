@@ -1,19 +1,28 @@
 <template>
 	<!-- #ifdef MP-WEIXIN -->
 	<scroll-view class="flex-1">
-		<view>
+		<view class="video-box">
+			<text class="tip text-primary" v-if="!state.videoUrl">
+				{{tipText}}
+			</text>
 			<video
+				id="live-video"
 				style="width: 100%;"
 				:src="state.videoUrl"
 				autoplay
 				controls
+				is-live
+				:show-mute-btn="true"
+				:show-loading="false"
 				:enable-danmu="false"
 				:enable-progress-gesture="true"
 				:show-center-play-btn="true"
+				@error="videoError"
+				@play="videoPlay"
 			></video>
 		</view>
 		<view class="flex uni-row p-base">
-			<view class="cover">
+			<view class="avatar">
 				<image src="/static/logo.png" mode=""></image>
 			</view>
 			<view class="ml-base">
@@ -50,7 +59,7 @@
 	</scroll-view>
 	<!-- #endif -->
 	<!-- #ifdef WEB -->
-	<iframePage :href="`http://localhost:3001/m-live/${state.id}`" @iframeReady="onIframeReady"></iframePage>
+	<iframePage :href="`${apiHost}/m-live/${state.id}`" @iframeReady="onIframeReady"></iframePage>
 	<!-- #endif -->
 </template>
 
@@ -58,6 +67,8 @@
 	import { LiveType, MessageType } from '@/pages/types/live'
 	import iframePage from '@/pages/components/iframe-page/index'
 	import { getLocalUserInfo } from '@/states/auth'
+	import { useHost } from '@/states/host';
+	const {liveHost, apiHost} = useHost()
 	const state = reactive<
 		{
 			id: string,
@@ -68,6 +79,11 @@
 			scrollIntoView: string,
 			liveSocket: any,
 			videoUrl: string
+			retry: {
+				retryTimes: number,
+				timer: any
+			},
+			videoContext: any
 		}
 	>({
 		id: '',
@@ -77,7 +93,12 @@
 		messageValue: '',
 		scrollIntoView: '',
 		liveSocket: null,
-		videoUrl: ''
+		videoUrl: '',
+		retry: {
+			retryTimes: 0,
+			timer: null
+		},
+		videoContext: null
 	})
 	const userInfo = getLocalUserInfo()
 	onLoad((option) => {
@@ -106,14 +127,12 @@
 	import {reactive, onBeforeUnmount} from 'vue'
 	import { getLiveDetail } from '@/pages/request/live'
 	import * as io from '@/js_sdk/hyoga-uni-socket_io/uni-socket.io';
-	import { useHost } from '@/states/host';
-	const {liveHost} = useHost()
+	
 	onMounted(async () => {
-		// #ifdef MP-WEIXIN
 		await getLive()
 		connectChatSocket()
 		connectLiveSocket()
-		// #endif
+		state.videoContext = uni.createVideoContext('live-video')
 	})
 	onBeforeUnmount(() => {
 		if(state.chatSocket) {
@@ -121,6 +140,19 @@
 		}
 		if(state.liveSocket) {
 			state.liveSocket.disconnect()
+		}
+	})
+	const tipText = computed(() => {
+		if(state.retry.timer) {
+			return '正在尝试链接'
+		}
+		switch(state.detail?.status) {
+			case 'ended':
+				return '直播结束'
+			case 'live':
+				return '直播暂停'
+			case 'scheduled':
+				return '直播未开始'
 		}
 	})
 	const getLive = async () => {
@@ -165,7 +197,9 @@
 			})
 			state.chatSocket.emit('messageAll')
 		})
-		
+		state.chatSocket.on('disconnect', () => {
+			console.log('disconnect')
+		})
 	}
 	const sendMsg = () => {
 		if(!state.messageValue) {
@@ -175,7 +209,7 @@
 		}
 		if(state.chatSocket) {
 			state.chatSocket.emit('messageSend', JSON.stringify({
-			  userId: '123456',
+			  userId: getVisitorId(),
 			  username: '游客',
 			  message: state.messageValue,
 			  createTime: new Date()
@@ -194,8 +228,11 @@
 			transports: ['websocket', 'polling']
 		})
 		state.liveSocket.on('connect', res => {
-			state.liveSocket.on('produceReady', (data) => {
+			state.liveSocket.on('ffmpegReady', res => {
 				getHlsStream()
+			})
+			state.liveSocket.on('ffmpegStoped', () => {
+				clearTimer()
 			})
 			getHlsStream()
 		})
@@ -205,10 +242,56 @@
 			state.videoUrl = `${liveHost}${data.url}`
 		})
 	}
+	const videoError = () => {
+		state.videoUrl = ''
+		if(state.retry.timer) {
+			return
+		}
+		state.retry.timer = setInterval(() => {
+			if(state.retry.retryTimes > 7) {
+				clearTimer()
+				return
+			}
+			getHlsStream()
+			state.retry.retryTimes ++
+		}, 2000)
+	}
+	const videoPlay = () => {
+		clearTimer()
+	}
+	const clearTimer = () => {
+		clearInterval(state.retry.timer)
+		state.retry.retryTimes = 0
+		state.retry.timer = null
+	}
+	const getVisitorId = () => {
+		const idKey = 'visitorIdId'
+		  let id = uni.getStorageSync(idKey)
+		  if(!id) {
+		    id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+		      const r = (Math.random() * 16) | 0
+		      const v = c === 'x' ? r : (r & 0x3) | 0x8
+		      return v.toString(16)
+		    })
+		    uni.setStorageSync(idKey, id)
+		  }
+		  return id
+	}
 	// #endif
 </script>
 
 <style lang="scss">
+	.video-box {
+		position: relative;
+		.tip {
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			color: white;
+			transform: translate(-50%, -50%);
+			z-index: 1;
+		}
+	}
 	.chat-title {
 		border-bottom: 1px solid $uni-border-color;
 	}

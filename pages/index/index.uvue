@@ -46,6 +46,7 @@
 	import { LiveType } from '@/pages/types/live'
 	import courseCard from '@/pages/components/course-card/index.uvue'
 	import {ref} from 'vue'
+	import { getHomeCourses } from '../request/course'
 	const infos: Array<{
 		imgUrl: string
 		msg: string
@@ -74,27 +75,36 @@
 		course: [],
 		live: []
 	})
-	uni.request({
-		url: 'http://localhost:3001/api/course/home',
-		method: 'GET',
-		data: {},
-		success: (res: any) => {
-			state.course = res.data.data.courses.map((v: CourseType) => ({
+	onMounted(() => {
+		getInfo()
+	})
+	const getInfo = async () => {
+		const res = await getHomeCourses()
+		const {
+			success,
+			data
+		} = res as {
+			success: boolean,
+			data: {
+				lives: any[]
+				courses: any[]
+			}
+		}
+		if (success) {
+			state.course = data.courses.map((v: CourseType) => ({
 				...v,
 				title: v.courseName,
 				cover:v.courseCover,
 				description: v.courseDesc,
 				instructorName: v.instructor?.username,
-			}))
-			state.live = res.data.data.lives.map((v: LiveType) => ({
+			})) as Array<CourseCard>
+			state.live = data.lives.map((v: LiveType) => ({
 				...v,
 				cover:v.liveCover,
 				instructorName: v.instructor?.username,
-			}))
-		},
-		fail: () => {},
-		complete: () => {}
-	});
+			})) as Array<CourseCard>
+		}
+	}
 </script>
 
 <style lang="scss">

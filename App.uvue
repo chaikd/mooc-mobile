@@ -20,9 +20,6 @@ import { getToken, getLocalUserInfo, setUserInfo } from './states'
 				}
 			}
 		},
-		onPageShow: async function() {
-			console.log('onpage show')
-		},
 		onHide: function () {
 			console.log('App Hide')
 		},
@@ -135,7 +132,7 @@ import { getToken, getLocalUserInfo, setUserInfo } from './states'
 		color: $uni-text-color-inverse;
 		font-size: $uni-font-size-sm;
 	}
-	.cover {
+	.avatar {
 		width: $uni-img-size-lg;
 		height: $uni-img-size-lg;
 		border-radius: $uni-border-radius-circle;

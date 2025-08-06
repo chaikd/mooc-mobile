@@ -3,7 +3,7 @@ import { reactive } from 'vue'
 let apiHost = ''
 let liveHost = ''
 if (process.env.NODE_ENV === 'development') {
-	apiHost = 'http://localhost:3001'
+	apiHost = 'http://localhost:3002'
 	liveHost = 'http://localhost:3000'
 }
 if (process.env.NODE_ENV === 'production') {
