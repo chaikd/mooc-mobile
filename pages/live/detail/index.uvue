@@ -234,6 +234,11 @@
 			state.liveSocket.on('ffmpegStoped', () => {
 				clearTimer()
 			})
+			state.liveSocket.on('liveEnded', async () => {
+				await getLive()
+				state.videoUrl = ''
+				clearTimer()
+			})
 			getHlsStream()
 		})
 	}
