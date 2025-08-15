@@ -42,7 +42,7 @@
 		loading: false
 	})
 	const loadData = () => {
-		if(state.page > state.courseList.length % state.pageSize) {
+		if(state.page > (state.total / state.pageSize)) {
 			return
 		}
 		state.loading = true

@@ -1,11 +1,11 @@
 <template>
-	<navigator class="mt-base" v-if="cardInfo" :url="url">
+	<navigator class="mt-lg" v-if="cardInfo" :url="url">
 		<view class="course-card uni-row">
 			<image :src="cardInfo.cover" :alt="cardInfo.title" :key="cardInfo._id"/>
 			<view class="flex-1 course-info">
 				<text class="title">{{cardInfo.title}}</text>
 				<text class="info">讲师：{{cardInfo.instructorName}}</text>
-				<text class="info">描述：{{cardInfo.description}}</text>
+				<text class="info text-ellipslis">描述：{{cardInfo.description}}</text>
 				<text class="info">已学习：{{cardInfo.totalCount || 0}}人</text>
 			</view>
 			<view class="islive tag" v-if="cardInfo.status === 'live'">
@@ -30,10 +30,11 @@
 	})
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 	.course-card {
 		position: relative;
 		height: 130px;
+		// box-shadow: 0 0 8px 2px $uni-bg-color-mask;
 		border: 1px solid #eee;
 		border-radius: 6px;
 		image {

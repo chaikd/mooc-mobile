@@ -1,28 +1,35 @@
 <template>
 	<scroll-view style="flex:1">
 		<template v-if="!state.token">
-			<view class="mt-base">
+			<view class="mt-base p-base">
 				<navigator url="/pages/login/index">
 					<button type="primary" >去登陆</button>
 				</navigator>
 			</view>
 		</template>
 		<template v-else>
-			<view class="mt-base">
-				<button type="primary" @click="toLogout">退出登陆</button>
+			<view class="mt-base p-base">
+				<text class="text-center">{{state.userInfo?.username}}</text>
+				<button class="mt-base" type="primary" @click="toLogout">退出登陆</button>
 			</view>
 		</template>
 	</scroll-view>
 </template>
 
 <script setup lang="uts">
-	import {getToken, clearAuth} from '@/states/auth'
+	import {getToken, clearAuth, getLocalUserInfo} from '@/states/auth'
 	import {logout} from '@/pages/request/auth'
-	const state = reactive({
-		token: ''
+import { UserType } from '../types/user'
+	const state = reactive<{
+		token: string,
+		userInfo: UserType | null
+	}>({
+		token: '',
+		userInfo: null
 	})
 	onPageShow(() => {
 		state.token = getToken()
+		state.userInfo = getLocalUserInfo()
 	})
 	const toLogout = () => {
 		logout().then((res) => {

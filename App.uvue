@@ -69,6 +69,9 @@ import { getToken, getLocalUserInfo, setUserInfo } from './states'
 	.text-primary {
 		color: $uni-color-primary;
 	}
+	.text-center {
+		text-align: center;
+	}
 	.p-base{
 		padding: $uni-spacing-row-base;;
 	}
@@ -87,6 +90,9 @@ import { getToken, getLocalUserInfo, setUserInfo } from './states'
 	.mt-base{
 		margin-top: $uni-spacing-col-base;
 	}
+	.mt-lg {
+		margin-top: $uni-spacing-col-lg;
+	}
 	.ml-base {
 		margin-left: $uni-spacing-row-base;
 	}
@@ -104,7 +110,8 @@ import { getToken, getLocalUserInfo, setUserInfo } from './states'
 	
 	/* 基础样式 */
 	@mixin base-card {
-		border:solid 1px $uni-border-color;
+		// border:solid 1px $uni-border-color;
+		border:solid 1px #eee;
 		border-radius: $uni-border-radius-base;
 		padding: $uni-spacing-row-sm;
 	}
@@ -146,5 +153,10 @@ import { getToken, getLocalUserInfo, setUserInfo } from './states'
 	.box {
 		border-radius: $uni-border-radius-lg;
 		box-shadow: 0px 4px 8px $uni-bg-color-hover;
+	}
+	.text-ellipslis {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 </style>

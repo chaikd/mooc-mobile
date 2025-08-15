@@ -43,7 +43,7 @@ import { getLiveList } from '@/pages/request/live'
 		loading: false
 	})
 	const loadData = () => {
-		if(state.page > state.liveList.length % state.pageSize) {
+		if(state.page > (state.total / state.pageSize)) {
 			return
 		}
 		state.loading = true
