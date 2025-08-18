@@ -50,6 +50,6 @@
 	.islive {
 		position: absolute;
 		top: $uni-spacing-col-base;
-		right: $uni-spacing-row-base;
+		left: $uni-spacing-row-base;
 	}
 </style>
